@@ -1,0 +1,46 @@
+{
+  "name": "security-adventure",
+  "version": "0.0.2",
+  "description": "Go on an educational Web security adventure!",
+  "main": "app.js",
+  "bin": {
+    "security-adventure": "bin/security-adventure.js"
+  },
+  "dependencies": {
+    "mkdirp": "0.3.5",
+    "colors-tmpl": "0.1.0",
+    "optimist": "0.6.0",
+    "xtend": "2.1.1",
+    "terminal-menu": "0.1.0",
+    "levelup": "0.16.0",
+    "leveldown": "0.8.2",
+    "memdown": "0.3.0",
+    "request": "2.27.0",
+    "fibers": "1.0.1",
+    "phantom-wd-runner": "0.0.2",
+    "wd": "0.1.4",
+    "cheerio": "0.12.2",
+    "tap-prettify": "0.0.2"
+  },
+  "scripts": {
+    "test": "node node_modules/tap-prettify/bin/tap-prettify.js test/*.js test/solutions/*.js --stderr --timeout 60"
+  },
+  "keywords": [
+    "security",
+    "educational",
+    "guide",
+    "tutorial",
+    "learn",
+    "workshop"
+  ],
+  "author": {
+    "name": "Atul Varma",
+    "email": "varmaa@gmail.com",
+    "url": "http://toolness.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/toolness/security-adventure.git"
+  },
+  "license": "BSD-2-Clause"
+}
