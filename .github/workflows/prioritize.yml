@@ -1,0 +1,70 @@
+name: NPM Prioritize Scan
+
+on:
+  push:
+    branches: [ release* ]
+  pull_request:
+    branches: [ release* ]
+
+jobs:
+  WhiteSource-Prioritize:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["16.x"]
+
+    steps:
+      - name: Checkout https://github.com/${{ github.repository }}@${{ github.ref }}
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: |
+          cd NodeGoat && npm install --only=prod
+          cd ../nodejs-goof && npm install  --only=prod
+          cd ../vulnerable-node && npm install --only=prod && cd ..
+
+      - name: WhiteSource Prioritize Scan
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          WS_APIKEY: ${{secrets.APIKEY}}
+          WS_USERKEY: ${{secrets.USERKEY}}
+        run: |
+          cat <<EOF > eua.config
+          apiKey=$WS_APIKEY
+          userKey=$WS_USERKEY
+          wss.url=https://saas.whitesourcesoftware.com/agent
+          productName=GH_${{ github.event.repository.name }}
+          projectName=${{ github.ref }}_Prioritize
+          enableImpactAnalysis=true
+          requireKnownSha1=false
+          resolveAllDependencies=false
+          npm.resolveDependencies=true
+          npm.resolveLockFile=true
+          fileSystemScan=false
+          generateProjectDetailsJson=true
+          EOF
+          cat eua.config
+          echo config created successfully
+          curl -LJO https://unified-agent.s3.amazonaws.com/wss-unified-agent.jar
+          curl -LJO https://unified-agent.s3.amazonaws.com/xModuleAnalyzer/xModuleAnalyzer.jar
+          echo Unified Agent downloaded successfully
+          java -jar wss-unified-agent.jar -d $PWD -analyzeMultiModule multimodule.txt
+          echo 'multimodule.txt contents'
+          cat multimodule.txt
+          java -jar xModuleAnalyzer.jar -xModulePath multimodule.txt -fsaJarPath ./wss-unified-agent.jar -c ./eua.config -aggregateModules true
